@@ -37,6 +37,15 @@ while ~contains(lin,'}')
     data = data{1};
     datatype = data{1};
     name = data{2};
+    dimensions = regexp(name,'\[(\d*)\]','match');
+    if isempty(dimensions)
+        dimensions = 1;
+    else
+        dimensions = str2num(dimensions{1});
+        name = regexp(name,'\[(\d*)\]','split');
+        name = name{1};
+    end
+        
     idx = find(strcmp(datatype,datatypes.px4), 1);
     if isempty(idx)
         error(['Could not find datatype ' datatype ' in datatype_map.csv'])
@@ -45,6 +54,7 @@ while ~contains(lin,'}')
         busElements(nfields) = Simulink.BusElement;
         busElements(nfields).Name = name;
         busElements(nfields).DataType = char(datatypes.simulink(idx));
+        busElements(nfields).Dimensions = dimensions;
         busElements(nfields).Description = description;
     end
     lin = fgetl(fid);
