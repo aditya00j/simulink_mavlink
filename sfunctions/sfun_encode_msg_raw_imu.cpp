@@ -1,10 +1,9 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_decode' on 15-Nov-2017 16:48:07
+This file was automatically created by the Matlab function 'create_sfun_encode' on 15-Nov-2017 16:48:05
 as part of Simulink MAVLink library.
 */
-
-#define S_FUNCTION_NAME  sfun_decode_mavlink
+#define S_FUNCTION_NAME  sfun_encode_msg_raw_imu
 #define S_FUNCTION_LEVEL 2
 
 #include "simstruc.h"
@@ -13,9 +12,8 @@ as part of Simulink MAVLink library.
 #define SYS_ID 100
 #define COMP_ID 200
 
-#include "D:/simulink_mavlink/include/mavlink/v1.0/common/mavlink.h"
-
-#include "include/sfun_decode_mavlink.h"
+#include "include/mavlink/v1.0/common/mavlink.h"
+#include "include/sfun_mavlink_msg_raw_imu.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD
@@ -36,49 +34,21 @@ static void mdlInitializeSizes(SimStruct *S)
 
     if (!ssSetNumInputPorts(S, 1)) return;
 
+    ssSetInputPortWidth(S, 0, 1);
     ssSetInputPortDirectFeedThrough(S, 0, 1);
     ssSetInputPortRequiredContiguous(S, 0, 1);
-    ssSetInputPortDataType(S, 0, SS_UINT8);
-    ssSetInputPortVectorDimension(S, 0, MAVLINK_MAX_PACKET_LEN);
 
-	if (!ssSetNumOutputPorts(S, 3)) return;
+    DTypeId BusType;
+	ssRegisterTypeFromNamedObject(S, BUS_NAME_RAW_IMU, &BusType);
+    if(BusType == INVALID_DTYPE_ID) return;
+    ssSetInputPortDataType(S, 0, BusType);
+    ssSetBusInputAsStruct(S, 0, 1);
+    ssSetInputPortBusMode(S, 0, SL_BUS_MODE);
 
-	#if defined(MATLAB_MEX_FILE)
-	if (ssGetSimMode(S) != SS_SIMMODE_SIZES_CALL_ONLY)
-	{
-		DTypeId dataTypeIdReg0;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_HEARTBEAT, &dataTypeIdReg0);
-		if (dataTypeIdReg0 == INVALID_DTYPE_ID) return;
-		ssSetOutputPortDataType(S, 0, dataTypeIdReg0);
+    if (!ssSetNumOutputPorts(S, 1)) return;
 
-		DTypeId dataTypeIdReg1;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_ATTITUDE, &dataTypeIdReg1);
-		if (dataTypeIdReg1 == INVALID_DTYPE_ID) return;
-		ssSetOutputPortDataType(S, 1, dataTypeIdReg1);
-
-		DTypeId dataTypeIdReg2;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_RAW_IMU, &dataTypeIdReg2);
-		if (dataTypeIdReg2 == INVALID_DTYPE_ID) return;
-		ssSetOutputPortDataType(S, 2, dataTypeIdReg2);
-
-	}
-	#endif
-
-	ssSetBusOutputObjectName(S, 0, (void *) BUS_NAME_HEARTBEAT);
-	ssSetBusOutputObjectName(S, 1, (void *) BUS_NAME_ATTITUDE);
-	ssSetBusOutputObjectName(S, 2, (void *) BUS_NAME_RAW_IMU);
-
-	ssSetOutputPortWidth(S, 0, 1);
-	ssSetOutputPortWidth(S, 1, 1);
-	ssSetOutputPortWidth(S, 2, 1);
-
-	ssSetBusOutputAsStruct(S, 0, 1);
-	ssSetBusOutputAsStruct(S, 1, 1);
-	ssSetBusOutputAsStruct(S, 2, 1);
-
-	ssSetOutputPortBusMode(S, 0, SL_BUS_MODE);
-	ssSetOutputPortBusMode(S, 1, SL_BUS_MODE);
-	ssSetOutputPortBusMode(S, 2, SL_BUS_MODE);
+	ssSetOutputPortWidth(S, 0, ENCODED_LEN_RAW_IMU);
+    ssSetOutputPortDataType(S, 0, SS_UINT8);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -115,17 +85,13 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-    int_T *busInfo = (int_T *) malloc(2*NFIELDS_OUTPUT_BUS*sizeof(int_T));
+	int_T *busInfo = (int_T *) malloc(2*NFIELDS_BUS_RAW_IMU*sizeof(int_T));
     if(busInfo == NULL) {
       ssSetErrorStatus(S, "Memory allocation failure");
       return;
     }
+	encode_businfo_raw_imu(S, busInfo, 0);
 
-	encode_businfo_heartbeat(S, busInfo, OFFSET_HEARTBEAT);
-	encode_businfo_attitude(S, busInfo, OFFSET_ATTITUDE);
-	encode_businfo_raw_imu(S, busInfo, OFFSET_RAW_IMU);
-
-    ssSetUserData(S, busInfo);
 } /* end mdlStart */
 
 
@@ -137,19 +103,10 @@ static void mdlStart(SimStruct *S)
  */
 static void mdlOutputs(SimStruct *S, int_T tid)
 {
-
-    int_T len_uvec = ssGetInputPortWidth(S, 0);
-    const uint8_T* uvec = (uint8_T*) ssGetInputPortSignal(S, 0);
-
-    mavlink_message_t msg;
-    mavlink_status_t status;
-
-    for (int uidx = 0; uidx < len_uvec; uidx++) {
-      if(mavlink_parse_char(MAVLINK_COMM_0, uvec[uidx], &msg, &status)) {
-        decode_mavlink_msg(S, &msg);
-      }
-    }
-
+    const char *uvec = (const char *) ssGetInputPortSignal(S, 0);
+    uint8_T *yvec = (uint8_T *) ssGetOutputPortSignal(S, 0);
+    int_T* busInfo = (int_T *) ssGetUserData(S);
+	encode_vector_raw_imu(uvec, busInfo, yvec, 0);
 }
 
 /* Function: mdlTerminate ======================================================
