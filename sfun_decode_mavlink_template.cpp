@@ -16,7 +16,7 @@
 <EDIT><1> // #define SYS_ID 100
 <EDIT><2> // #define COMP_ID 200
 
-#include "D:/simulink_mavlink/include/mavlink/v1.0/common/mavlink.h"
+#include "include/mavlink/v1.0/common/mavlink.h"
 
 <EDIT><3> // include sfunc_decode_mavlink.h
 
