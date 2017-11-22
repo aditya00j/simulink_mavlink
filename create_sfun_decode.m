@@ -17,6 +17,9 @@ function create_sfun_decode(filenames, sys_id, comp_id)
 
 if ~iscell(filenames), filenames = {filenames}; end
 
+this_dir = fileparts(mfilename('fullpath'));
+sep = filesep;
+
 disp('*** Running create_sfun_decode:')
 
 if nargin < 2, sys_id = 100; end
@@ -35,7 +38,7 @@ end
 
 fprintf('Creating s-function header file... ')
 
-header_filename = 'include/sfun_decode_mavlink.h';
+header_filename = [this_dir sep 'include' sep 'sfun_decode_mavlink.h'];
 
 fid = fopen(header_filename,'w');
 
@@ -49,7 +52,7 @@ fprintf(fid,'%s\n','');
 
 % Include message headers
 for i = 1:length(filenames)
-    fprintf(fid,'%s\n',['#include "include/sfun_mavlink_msg_' mavlink_msg_names{i} '.h"']);
+    fprintf(fid,'%s\n',['#include "' this_dir sep 'include' sep 'sfun_mavlink_msg_' mavlink_msg_names{i} '.h"']);
 end
 
 % Define NFIELDS_OUTPUT_BUS

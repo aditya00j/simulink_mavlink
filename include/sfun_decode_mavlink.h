@@ -1,12 +1,12 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_decode' on 15-Nov-2017 16:48:07
+This file was automatically created by the Matlab function 'create_sfun_decode' on 22-Nov-2017 11:13:27
 as part of Simulink MAVLink library.
 */
 
-#include "include/sfun_mavlink_msg_heartbeat.h"
-#include "include/sfun_mavlink_msg_attitude.h"
-#include "include/sfun_mavlink_msg_raw_imu.h"
+#include "C:\Simulation\simulink_mavlink\include\sfun_mavlink_msg_heartbeat.h"
+#include "C:\Simulation\simulink_mavlink\include\sfun_mavlink_msg_attitude.h"
+#include "C:\Simulation\simulink_mavlink\include\sfun_mavlink_msg_raw_imu.h"
 
 #define NFIELDS_OUTPUT_BUS (NFIELDS_BUS_HEARTBEAT + NFIELDS_BUS_ATTITUDE + NFIELDS_BUS_RAW_IMU)
 

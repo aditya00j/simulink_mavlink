@@ -1,6 +1,6 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_decode' on 15-Nov-2017 16:48:07
+This file was automatically created by the Matlab function 'create_sfun_decode' on 22-Nov-2017 11:13:27
 as part of Simulink MAVLink library.
 */
 
@@ -13,9 +13,9 @@ as part of Simulink MAVLink library.
 #define SYS_ID 100
 #define COMP_ID 200
 
-#include "D:/simulink_mavlink/include/mavlink/v1.0/common/mavlink.h"
+#include "include/mavlink/v1.0/common/mavlink.h"
 
-#include "include/sfun_decode_mavlink.h"
+#include "C:\Simulation\simulink_mavlink\include\sfun_decode_mavlink.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD

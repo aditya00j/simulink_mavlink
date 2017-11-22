@@ -17,6 +17,9 @@ function create_sfun_encode(filename, sys_id, comp_id)
 
 %% Create header file
 
+this_dir = fileparts(mfilename('fullpath'));
+sep = filesep;
+
 disp(' ')
 disp(['*** Running create_sfun_encode for ' filename ':'])
 
@@ -67,7 +70,7 @@ while ~contains(lin,'<END>')
                 fprintf(fout,'%s\n',['#define COMP_ID ' num2str(comp_id)]);
                 
             case 4
-                fprintf(fout,'%s\n',['#include "include/sfun_mavlink_msg_' mavlink_msg_name '.h"']);
+                fprintf(fout,'%s\n',['#include "' this_dir sep 'include' sep 'sfun_mavlink_msg_' mavlink_msg_name '.h"']);
                 
             case 5
                 fprintf(fout,'\t%s\n',['ssRegisterTypeFromNamedObject(S, BUS_NAME_' upper(mavlink_msg_name) ', &BusType);']);

@@ -1,6 +1,6 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_encode' on 15-Nov-2017 16:48:05
+This file was automatically created by the Matlab function 'create_sfun_encode' on 22-Nov-2017 11:13:25
 as part of Simulink MAVLink library.
 */
 #define S_FUNCTION_NAME  sfun_encode_msg_raw_imu
@@ -13,7 +13,7 @@ as part of Simulink MAVLink library.
 #define COMP_ID 200
 
 #include "include/mavlink/v1.0/common/mavlink.h"
-#include "include/sfun_mavlink_msg_raw_imu.h"
+#include "C:\Simulation\simulink_mavlink\include\sfun_mavlink_msg_raw_imu.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD

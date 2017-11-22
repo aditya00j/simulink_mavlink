@@ -18,6 +18,9 @@ function mavlink_msg_name = create_sfun_header(filename)
 
 %% Create and save bus
 
+this_dir = fileparts(mfilename('fullpath'));
+sep = filesep;
+
 disp('**')
 
 fprintf('Creating Simulink bus from message... ');
@@ -25,7 +28,7 @@ fprintf('Creating Simulink bus from message... ');
 assignin('base',simulink_bus_name,simulink_bus);
 disp('done');
 eval([simulink_bus_name '= simulink_bus;'])
-busfilename = ['buses/bus_' simulink_bus_name '.mat'];
+busfilename = [this_dir sep 'buses' sep 'bus_' simulink_bus_name '.mat'];
 save(busfilename,simulink_bus_name);
 disp(['Bus is saved in ' busfilename]);
 
@@ -34,7 +37,7 @@ disp(['Bus is saved in ' busfilename]);
 
 fprintf('Creating the s-function header file... ');
 mavlink_msg_name = erase(simulink_bus_name,{'mavlink_','_t'});
-fileName = ['include/sfun_mavlink_msg_' mavlink_msg_name '.h'];
+fileName = [this_dir sep 'include' sep 'sfun_mavlink_msg_' mavlink_msg_name '.h'];
 fid = fopen(fileName,'w');
 
 
@@ -47,10 +50,8 @@ fprintf(fid,'%s\n','as part of Simulink MAVLink library.');
 fprintf(fid,'%s\n','*/');
 
 % Use full path in the #include statements
-pathname = fileparts(mfilename('fullpath'));
-sep = filesep;
 fprintf(fid,'%s\n','');
-fprintf(fid,'%s\n',['#include "' pathname sep 'include' sep 'mavlink' sep 'v1.0' sep 'common' sep 'mavlink_msg_' mavlink_msg_name '.h"']);
+fprintf(fid,'%s\n',['#include "' this_dir sep 'include' sep 'mavlink' sep 'v1.0' sep 'common' sep 'mavlink_msg_' mavlink_msg_name '.h"']);
 fprintf(fid,'%s\n',['#define BUS_NAME_' upper(mavlink_msg_name) ' "' simulink_bus_name '"']);
 fprintf(fid,'%s\n',['#define NFIELDS_BUS_' upper(mavlink_msg_name) ' ' num2str(length(simulink_bus.Elements))]);
 fprintf(fid,'%s\n',['#define ENCODED_LEN_' upper(mavlink_msg_name) ' (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_' upper(mavlink_msg_name) '_LEN)']);

@@ -1,10 +1,10 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_header' on 15-Nov-2017 16:48:07
+This file was automatically created by the Matlab function 'create_sfun_header' on 22-Nov-2017 11:13:26
 as part of Simulink MAVLink library.
 */
 
-#include "D:\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_heartbeat.h"
+#include "C:\Simulation\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_heartbeat.h"
 #define BUS_NAME_HEARTBEAT "mavlink_heartbeat_t"
 #define NFIELDS_BUS_HEARTBEAT 6
 #define ENCODED_LEN_HEARTBEAT (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_HEARTBEAT_LEN)
