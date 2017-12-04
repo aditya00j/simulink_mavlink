@@ -1,6 +1,6 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_decode' on 22-Nov-2017 11:13:27
+This file was automatically created by the Matlab function 'create_sfun_decode' on 04-Dec-2017 15:46:49
 as part of Simulink MAVLink library.
 */
 
@@ -15,7 +15,7 @@ as part of Simulink MAVLink library.
 
 #include "include/mavlink/v1.0/common/mavlink.h"
 
-#include "C:\Simulation\simulink_mavlink\include\sfun_decode_mavlink.h"
+#include "include/sfun_decode_mavlink.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD
@@ -41,44 +41,35 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortDataType(S, 0, SS_UINT8);
     ssSetInputPortVectorDimension(S, 0, MAVLINK_MAX_PACKET_LEN);
 
-	if (!ssSetNumOutputPorts(S, 3)) return;
+	if (!ssSetNumOutputPorts(S, 2)) return;
 
 	#if defined(MATLAB_MEX_FILE)
 	if (ssGetSimMode(S) != SS_SIMMODE_SIZES_CALL_ONLY)
 	{
 		DTypeId dataTypeIdReg0;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_HEARTBEAT, &dataTypeIdReg0);
+		ssRegisterTypeFromNamedObject(S, BUS_NAME_ATTITUDE, &dataTypeIdReg0);
 		if (dataTypeIdReg0 == INVALID_DTYPE_ID) return;
 		ssSetOutputPortDataType(S, 0, dataTypeIdReg0);
 
 		DTypeId dataTypeIdReg1;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_ATTITUDE, &dataTypeIdReg1);
+		ssRegisterTypeFromNamedObject(S, BUS_NAME_RAW_IMU, &dataTypeIdReg1);
 		if (dataTypeIdReg1 == INVALID_DTYPE_ID) return;
 		ssSetOutputPortDataType(S, 1, dataTypeIdReg1);
-
-		DTypeId dataTypeIdReg2;
-		ssRegisterTypeFromNamedObject(S, BUS_NAME_RAW_IMU, &dataTypeIdReg2);
-		if (dataTypeIdReg2 == INVALID_DTYPE_ID) return;
-		ssSetOutputPortDataType(S, 2, dataTypeIdReg2);
 
 	}
 	#endif
 
-	ssSetBusOutputObjectName(S, 0, (void *) BUS_NAME_HEARTBEAT);
-	ssSetBusOutputObjectName(S, 1, (void *) BUS_NAME_ATTITUDE);
-	ssSetBusOutputObjectName(S, 2, (void *) BUS_NAME_RAW_IMU);
+	ssSetBusOutputObjectName(S, 0, (void *) BUS_NAME_ATTITUDE);
+	ssSetBusOutputObjectName(S, 1, (void *) BUS_NAME_RAW_IMU);
 
 	ssSetOutputPortWidth(S, 0, 1);
 	ssSetOutputPortWidth(S, 1, 1);
-	ssSetOutputPortWidth(S, 2, 1);
 
 	ssSetBusOutputAsStruct(S, 0, 1);
 	ssSetBusOutputAsStruct(S, 1, 1);
-	ssSetBusOutputAsStruct(S, 2, 1);
 
 	ssSetOutputPortBusMode(S, 0, SL_BUS_MODE);
 	ssSetOutputPortBusMode(S, 1, SL_BUS_MODE);
-	ssSetOutputPortBusMode(S, 2, SL_BUS_MODE);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -121,7 +112,6 @@ static void mdlStart(SimStruct *S)
       return;
     }
 
-	encode_businfo_heartbeat(S, busInfo, OFFSET_HEARTBEAT);
 	encode_businfo_attitude(S, busInfo, OFFSET_ATTITUDE);
 	encode_businfo_raw_imu(S, busInfo, OFFSET_RAW_IMU);
 

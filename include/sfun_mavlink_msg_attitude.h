@@ -1,10 +1,10 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_header' on 22-Nov-2017 11:13:27
+This file was automatically created by the Matlab function 'create_sfun_header' on 04-Dec-2017 15:46:49
 as part of Simulink MAVLink library.
 */
 
-#include "C:\Simulation\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_attitude.h"
+#include "C:\Simulation\Main\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_attitude.h"
 #define BUS_NAME_ATTITUDE "mavlink_attitude_t"
 #define NFIELDS_BUS_ATTITUDE 7
 #define ENCODED_LEN_ATTITUDE (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_ATTITUDE_LEN)
@@ -49,6 +49,7 @@ static inline uint16_t encode_vector_attitude(const char *uvec, const int_T *bus
 	mavlink_attitude_t ubus;
 	mavlink_message_t msg_encoded;
 	
+	
 	(void) memcpy(&ubus.time_boot_ms, uvec + busInfo[offset+0], busInfo[offset+1]);
 	(void) memcpy(&ubus.roll, uvec + busInfo[offset+2], busInfo[offset+3]);
 	(void) memcpy(&ubus.pitch, uvec + busInfo[offset+4], busInfo[offset+5]);
@@ -72,6 +73,7 @@ static inline void decode_msg_attitude(const mavlink_message_t* msg_encoded, con
 {
 	mavlink_attitude_t ybus;
 	mavlink_msg_attitude_decode(msg_encoded, &ybus);
+	
 	
 	(void) memcpy(yvec + busInfo[offset+0], &ybus.time_boot_ms, busInfo[offset+1]);
 	(void) memcpy(yvec + busInfo[offset+2], &ybus.roll, busInfo[offset+3]);

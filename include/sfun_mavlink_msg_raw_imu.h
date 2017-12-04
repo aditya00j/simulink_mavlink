@@ -1,10 +1,10 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_header' on 22-Nov-2017 11:13:27
+This file was automatically created by the Matlab function 'create_sfun_header' on 04-Dec-2017 15:46:49
 as part of Simulink MAVLink library.
 */
 
-#include "C:\Simulation\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_raw_imu.h"
+#include "C:\Simulation\Main\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_raw_imu.h"
 #define BUS_NAME_RAW_IMU "mavlink_raw_imu_t"
 #define NFIELDS_BUS_RAW_IMU 10
 #define ENCODED_LEN_RAW_IMU (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_RAW_IMU_LEN)
@@ -55,7 +55,10 @@ static inline uint16_t encode_vector_raw_imu(const char *uvec, const int_T *busI
 	mavlink_raw_imu_t ubus;
 	mavlink_message_t msg_encoded;
 	
-	(void) memcpy(&ubus.time_usec, uvec + busInfo[offset+0], busInfo[offset+1]);
+	double time_usec;
+	
+	(void) memcpy(&time_usec, uvec + busInfo[offset+0], busInfo[offset+1]);
+	ubus.time_usec = (uint64_t) time_usec;
 	(void) memcpy(&ubus.xacc, uvec + busInfo[offset+2], busInfo[offset+3]);
 	(void) memcpy(&ubus.yacc, uvec + busInfo[offset+4], busInfo[offset+5]);
 	(void) memcpy(&ubus.zacc, uvec + busInfo[offset+6], busInfo[offset+7]);
@@ -82,7 +85,9 @@ static inline void decode_msg_raw_imu(const mavlink_message_t* msg_encoded, cons
 	mavlink_raw_imu_t ybus;
 	mavlink_msg_raw_imu_decode(msg_encoded, &ybus);
 	
-	(void) memcpy(yvec + busInfo[offset+0], &ybus.time_usec, busInfo[offset+1]);
+	double time_usec = (double) ybus.time_usec;
+	
+	(void) memcpy(yvec + busInfo[offset+0], &time_usec, busInfo[offset+1]);
 	(void) memcpy(yvec + busInfo[offset+2], &ybus.xacc, busInfo[offset+3]);
 	(void) memcpy(yvec + busInfo[offset+4], &ybus.yacc, busInfo[offset+5]);
 	(void) memcpy(yvec + busInfo[offset+6], &ybus.zacc, busInfo[offset+7]);

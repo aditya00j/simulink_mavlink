@@ -18,17 +18,14 @@ function mavlink_msg_name = create_sfun_header(filename)
 
 %% Create and save bus
 
-this_dir = fileparts(mfilename('fullpath'));
-sep = filesep;
-
 disp('**')
 
 fprintf('Creating Simulink bus from message... ');
-[simulink_bus, simulink_bus_name] = create_bus_from_mavlink_header(filename);
+[simulink_bus, simulink_bus_name, bus_orig_dtypes] = create_bus_from_mavlink_header(filename);
 assignin('base',simulink_bus_name,simulink_bus);
 disp('done');
 eval([simulink_bus_name '= simulink_bus;'])
-busfilename = [this_dir sep 'buses' sep 'bus_' simulink_bus_name '.mat'];
+busfilename = ['buses/bus_' simulink_bus_name '.mat'];
 save(busfilename,simulink_bus_name);
 disp(['Bus is saved in ' busfilename]);
 
@@ -37,7 +34,7 @@ disp(['Bus is saved in ' busfilename]);
 
 fprintf('Creating the s-function header file... ');
 mavlink_msg_name = erase(simulink_bus_name,{'mavlink_','_t'});
-fileName = [this_dir sep 'include' sep 'sfun_mavlink_msg_' mavlink_msg_name '.h'];
+fileName = ['include/sfun_mavlink_msg_' mavlink_msg_name '.h'];
 fid = fopen(fileName,'w');
 
 
@@ -50,8 +47,10 @@ fprintf(fid,'%s\n','as part of Simulink MAVLink library.');
 fprintf(fid,'%s\n','*/');
 
 % Use full path in the #include statements
+pathname = fileparts(mfilename('fullpath'));
+sep = filesep;
 fprintf(fid,'%s\n','');
-fprintf(fid,'%s\n',['#include "' this_dir sep 'include' sep 'mavlink' sep 'v1.0' sep 'common' sep 'mavlink_msg_' mavlink_msg_name '.h"']);
+fprintf(fid,'%s\n',['#include "' pathname sep 'include' sep 'mavlink' sep 'v1.0' sep 'common' sep 'mavlink_msg_' mavlink_msg_name '.h"']);
 fprintf(fid,'%s\n',['#define BUS_NAME_' upper(mavlink_msg_name) ' "' simulink_bus_name '"']);
 fprintf(fid,'%s\n',['#define NFIELDS_BUS_' upper(mavlink_msg_name) ' ' num2str(length(simulink_bus.Elements))]);
 fprintf(fid,'%s\n',['#define ENCODED_LEN_' upper(mavlink_msg_name) ' (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_' upper(mavlink_msg_name) '_LEN)']);
@@ -101,12 +100,34 @@ fprintf(fid,'\t%s\n',['mavlink_' mavlink_msg_name '_t ubus;']);
 fprintf(fid,'\t%s\n','mavlink_message_t msg_encoded;');
 fprintf(fid,'\t%s\n','');
 
+% Typecast uint64_t (MAVLink) to double (Simulink) if required
 for i = 1:length(simulink_bus.Elements)
+    name = simulink_bus.Elements(i).Name;
+    dim = simulink_bus.Elements(i).Dimensions;
+    if strcmp(bus_orig_dtypes.(name),'uint64_t')
+        fprintf(fid,'\t%s',['double ' name]);
+        if dim > 1
+            fprintf(fid,'%s',['[' num2str(simulink_bus.Elements(i).Dimensions) ']']);
+        end
+        fprintf(fid,'%s\n',';');
+    end
+end
+fprintf(fid,'\t%s\n','');
+
+% Copy from byte array to struct
+for i = 1:length(simulink_bus.Elements)
+    name = simulink_bus.Elements(i).Name;
     fprintf(fid,'\t%s','(void) memcpy(');
     if simulink_bus.Elements(i).Dimensions == 1
         fprintf(fid,'%s','&');
     end
-    fprintf(fid,'%s\n',['ubus.' simulink_bus.Elements(i).Name ', uvec + busInfo[offset+' num2str(2*(i-1)) '], busInfo[offset+' num2str(2*(i-1)+1) ']);']);
+    if ~strcmp(bus_orig_dtypes.(name),'uint64_t')
+        fprintf(fid,'%s','ubus.');
+    end
+    fprintf(fid,'%s\n',[name ', uvec + busInfo[offset+' num2str(2*(i-1)) '], busInfo[offset+' num2str(2*(i-1)+1) ']);']);
+    if strcmp(bus_orig_dtypes.(name),'uint64_t')
+        fprintf(fid,'\t%s\n',['ubus.' name ' = (uint64_t) ' name ';']);
+    end
 end
 
 fprintf(fid,'\t%s\n','');
@@ -131,12 +152,31 @@ fprintf(fid,'\t%s\n',['mavlink_' mavlink_msg_name '_t ybus;']);
 fprintf(fid,'\t%s\n',['mavlink_msg_' mavlink_msg_name '_decode(msg_encoded, &ybus);']);
 fprintf(fid,'\t%s\n','');
 
+% Typecast double (Simulink) to uint64_t (MAVLink) if required
 for i = 1:length(simulink_bus.Elements)
+    name = simulink_bus.Elements(i).Name;
+    dim = simulink_bus.Elements(i).Dimensions;
+    if strcmp(bus_orig_dtypes.(name),'uint64_t')
+        fprintf(fid,'\t%s',['double ' name]);
+        if dim > 1
+            fprintf(fid,'%s',['[' num2str(simulink_bus.Elements(i).Dimensions) ']']);
+        end
+        fprintf(fid,'%s\n',[' = (double) ybus.' name ';']);
+    end
+end
+fprintf(fid,'\t%s\n','');
+
+% Copy from byte array to struct
+for i = 1:length(simulink_bus.Elements)
+    name = simulink_bus.Elements(i).Name;
     fprintf(fid,'\t%s',['(void) memcpy(yvec + busInfo[offset+' num2str(2*(i-1)) '], ']); 
     if simulink_bus.Elements(i).Dimensions == 1
         fprintf(fid,'%s','&');
     end
-    fprintf(fid,'%s\n',['ybus.' simulink_bus.Elements(i).Name ', busInfo[offset+' num2str(2*(i-1)+1) ']);']);
+    if ~strcmp(bus_orig_dtypes.(name),'uint64_t')
+        fprintf(fid,'%s','ybus.');
+    end
+    fprintf(fid,'%s\n',[name ', busInfo[offset+' num2str(2*(i-1)+1) ']);']);
 end
 
 fprintf(fid,'%s\n','}');

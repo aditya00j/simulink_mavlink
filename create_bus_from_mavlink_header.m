@@ -1,10 +1,12 @@
-function [busObj, bus_name] = create_bus_from_mavlink_header(filename)
+function [busObj, bus_name, bus_orig_dtypes] = create_bus_from_mavlink_header(filename)
 % CREATE_BUS_FROM_MAVLINK_HEADER: Create a Simulink Bus from a MAVLink message header file
 %
 % Input: string containing the header file name.
 % Output: 
 %    busObj: bus object
 %    bus_name: string containing name of the bus
+%    bus_orig_dtypes: struct containing original datatypes for the bus
+%            elements (as found in the MAVLink header)
 % 
 %Part of the Simulink MAVLink package.
 %(c) Aditya Joshi, October 2017
@@ -21,6 +23,7 @@ end
 % Next line is "typedef struct" - extract bus name from this
 lin = fgetl(fid);
 bus_name = strtrim(erase(lin,{'typedef struct __','{'}));
+bus_orig_dtypes = struct;
 
 % Now you have fields until you hit "}"
 nfields = 0;
@@ -51,6 +54,7 @@ while ~contains(lin,'}')
         busElements(nfields).DataType = char(datatypes.simulink(idx));
         busElements(nfields).Dimensions = dimensions;
         busElements(nfields).Description = description;
+        bus_orig_dtypes.(name) = char(datatypes.px4(idx));
     end
     lin = fgetl(fid);
 end
