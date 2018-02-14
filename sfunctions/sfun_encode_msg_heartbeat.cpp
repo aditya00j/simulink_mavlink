@@ -1,6 +1,6 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_encode' on 22-Nov-2017 11:13:23
+This file was automatically created by the Matlab function 'create_sfun_encode' on 03-Feb-2018 14:21:37
 as part of Simulink MAVLink library.
 */
 #define S_FUNCTION_NAME  sfun_encode_msg_heartbeat
@@ -12,8 +12,8 @@ as part of Simulink MAVLink library.
 #define SYS_ID 100
 #define COMP_ID 200
 
-#include "include/mavlink/v1.0/common/mavlink.h"
-#include "C:\Simulation\simulink_mavlink\include\sfun_mavlink_msg_heartbeat.h"
+#include "D:\simulink_mavlink\include\mavlink\v2.0\common\mavlink.h"
+#include "D:\simulink_mavlink\include\sfun_mavlink_msg_heartbeat.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD

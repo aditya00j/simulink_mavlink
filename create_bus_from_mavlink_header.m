@@ -1,7 +1,12 @@
 function [busObj, bus_name, bus_orig_dtypes] = create_bus_from_mavlink_header(filename)
-% CREATE_BUS_FROM_MAVLINK_HEADER: Create a Simulink Bus from a MAVLink message header file
+% CREATE_BUS_FROM_MAVLINK_HEADER: Create a Simulink Bus from a single 
+% MAVLink message header file
+% 
+% NOTE: This function is called by another function create_sfun_header,
+%       so the user would typically not have to directly use this function.
 %
-% Input: string containing the header file name.
+% Input: string containing the MAVLink message header file name
+% 
 % Output: 
 %    busObj: bus object
 %    bus_name: string containing name of the bus
@@ -44,7 +49,7 @@ while ~contains(lin,'}')
         name = name{1};
     end
 
-    idx = find(strcmp(datatype,datatypes.px4), 1);
+    idx = find(strcmp(datatype,datatypes.mavlink), 1);
     if isempty(idx)
         error(['Could not find datatype ' datatype ' in datatype_map.csv'])
     else
@@ -54,7 +59,7 @@ while ~contains(lin,'}')
         busElements(nfields).DataType = char(datatypes.simulink(idx));
         busElements(nfields).Dimensions = dimensions;
         busElements(nfields).Description = description;
-        bus_orig_dtypes.(name) = char(datatypes.px4(idx));
+        bus_orig_dtypes.(name) = char(datatypes.mavlink(idx));
     end
     lin = fgetl(fid);
 end

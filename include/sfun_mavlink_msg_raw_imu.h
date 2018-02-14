@@ -1,10 +1,10 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_header' on 04-Dec-2017 15:46:49
+This file was automatically created by the Matlab function 'create_sfun_header' on 05-Dec-2017 13:24:43
 as part of Simulink MAVLink library.
 */
 
-#include "C:\Simulation\Main\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_raw_imu.h"
+#include "D:\simulink_mavlink\include\mavlink\v1.0\common\mavlink_msg_raw_imu.h"
 #define BUS_NAME_RAW_IMU "mavlink_raw_imu_t"
 #define NFIELDS_BUS_RAW_IMU 10
 #define ENCODED_LEN_RAW_IMU (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_RAW_IMU_LEN)

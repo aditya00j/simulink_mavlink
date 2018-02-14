@@ -14,8 +14,8 @@
 <EDIT><2> // #define SYS_ID 100
 <EDIT><3> // #define COMP_ID 200
 
-#include "include/mavlink/v1.0/common/mavlink.h"
-<EDIT><4> // #include "include/sfun_mavlink_msg_attitude.h"
+<EDIT><4> // #include "include/mavlink/v1.0/common/mavlink.h"
+<EDIT><5> // #include "include/sfun_mavlink_msg_attitude.h"
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD
@@ -41,7 +41,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortRequiredContiguous(S, 0, 1);
 
     DTypeId BusType;
-<EDIT><5> // ssRegisterTypeFromNamedObject(S, INPUT_BUS_NAME, &BusType);
+<EDIT><6> // ssRegisterTypeFromNamedObject(S, INPUT_BUS_NAME, &BusType);
     if(BusType == INVALID_DTYPE_ID) return;
     ssSetInputPortDataType(S, 0, BusType);
     ssSetBusInputAsStruct(S, 0, 1);
@@ -49,7 +49,7 @@ static void mdlInitializeSizes(SimStruct *S)
 
     if (!ssSetNumOutputPorts(S, 1)) return;
 
-<EDIT><6> // ssSetOutputPortWidth(S, 0, OUTPUT_VECTOR_LEN);
+<EDIT><7> // ssSetOutputPortWidth(S, 0, OUTPUT_VECTOR_LEN);
     ssSetOutputPortDataType(S, 0, SS_UINT8);
 
     ssSetNumSampleTimes(S, 1);
@@ -87,12 +87,12 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-<EDIT><7> // int_T *busInfo = (int_T *) malloc(2*NFIELDS_INPUT_BUS*sizeof(int_T));
+<EDIT><8> // int_T *busInfo = (int_T *) malloc(2*NFIELDS_INPUT_BUS*sizeof(int_T));
     if(busInfo == NULL) {
       ssSetErrorStatus(S, "Memory allocation failure");
       return;
     }
-<EDIT><8> // encode_input_businfo(S, busInfo);
+<EDIT><9> // encode_input_businfo(S, busInfo);
 
 } /* end mdlStart */
 
@@ -108,7 +108,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     const char *uvec = (const char *) ssGetInputPortSignal(S, 0);
     uint8_T *yvec = (uint8_T *) ssGetOutputPortSignal(S, 0);
     int_T* busInfo = (int_T *) ssGetUserData(S);
-<EDIT><9> // encode_output_vector(uvec, busInfo, yvec);
+<EDIT><10> // encode_output_vector(uvec, busInfo, yvec);
 }
 
 /* Function: mdlTerminate ======================================================

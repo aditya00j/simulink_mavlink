@@ -16,9 +16,9 @@
 <EDIT><1> // #define SYS_ID 100
 <EDIT><2> // #define COMP_ID 200
 
-#include "include/mavlink/v1.0/common/mavlink.h"
+<EDIT><3> //#include "include/mavlink/v1.0/common/mavlink.h"
 
-<EDIT><3> // include sfunc_decode_mavlink.h
+<EDIT><4> // include sfunc_decode_mavlink.h
 
 /* Function: mdlInitializeSizes ================================================
  * REQUIRED METHOD
@@ -44,7 +44,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortDataType(S, 0, SS_UINT8);
     ssSetInputPortVectorDimension(S, 0, MAVLINK_MAX_PACKET_LEN);
 
-<EDIT><4> // Configure output ports
+<EDIT><5> // Configure output ports
 
     ssSetNumSampleTimes(S, 1);
 
@@ -87,7 +87,7 @@ static void mdlStart(SimStruct *S)
       return;
     }
 
-<EDIT><5> // encode_businfo for each message
+<EDIT><6> // encode_businfo for each message
 
     ssSetUserData(S, busInfo);
 } /* end mdlStart */

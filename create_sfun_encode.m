@@ -3,9 +3,19 @@ function create_sfun_encode(filename, sys_id, comp_id)
 % message
 %
 % Inputs:
-%   filename: string containing the MAVLink message header file
-%   sys_id: MAVLink SYSID to be used for Simulink (default 100)
-%   comp_id: MAVLink COMPID to be used for Simulink (default 200)
+%   filename: string containing the full path to the MAVLink message
+%             header file name. This file must be created as a part of a
+%             MAVLink dialect, and must reside in the directory structure
+%             of the corresponding dialect. In other words, the directory
+%             containing this message file must also contain the
+%             "mavlink.h" file, and its parent directory must contain the
+%             other commond mavlink files such as "protocol.h".
+% 
+%             NOTE: To ensure compiler independence, provide the full path
+%                   of the message file, and not relative path.
+% 
+%   sys_id:   MAVLink SYSID to be used for Simulink (default 100)
+%   comp_id:  MAVLink COMPID to be used for Simulink (default 200)
 %
 % Output:
 %   This function creates the Simulink bus, the s-function header file, the
@@ -15,14 +25,20 @@ function create_sfun_encode(filename, sys_id, comp_id)
 %(c) Aditya Joshi, November 2017
 
 
+%% Parse inputs
+
+if nargin < 2, sys_id = 100; end
+if nargin < 3, comp_id = 200; end
+
+pathname = fileparts(mfilename('fullpath'));
+sfun_include_dir = fullfile(pathname,'include');
+mavlink_dialect_dir = fileparts(filename);
+
+
 %% Create header file
 
 disp(' ')
 disp(['*** Running create_sfun_encode for ' filename ':'])
-
-if nargin < 2, sys_id = 100; end
-if nargin < 3, comp_id = 200; end
-    
 mavlink_msg_name = create_sfun_header(filename);
 
 
@@ -67,21 +83,24 @@ while ~contains(lin,'<END>')
                 fprintf(fout,'%s\n',['#define COMP_ID ' num2str(comp_id)]);
                 
             case 4
-                fprintf(fout,'%s\n',['#include "include/sfun_mavlink_msg_' mavlink_msg_name '.h"']);
+                fprintf(fout,'%s\n',['#include "' mavlink_dialect_dir filesep 'mavlink.h"']);
                 
             case 5
-                fprintf(fout,'\t%s\n',['ssRegisterTypeFromNamedObject(S, BUS_NAME_' upper(mavlink_msg_name) ', &BusType);']);
+                fprintf(fout,'%s\n',['#include "' sfun_include_dir filesep 'sfun_mavlink_msg_' mavlink_msg_name '.h"']);
                 
             case 6
-                fprintf(fout,'\t%s\n',['ssSetOutputPortWidth(S, 0, ENCODED_LEN_' upper(mavlink_msg_name) ');']);
+                fprintf(fout,'\t%s\n',['ssRegisterTypeFromNamedObject(S, BUS_NAME_' upper(mavlink_msg_name) ', &BusType);']);
                 
             case 7
-                fprintf(fout,'\t%s\n',['int_T *busInfo = (int_T *) malloc(2*NFIELDS_BUS_' upper(mavlink_msg_name) '*sizeof(int_T));']);
+                fprintf(fout,'\t%s\n',['ssSetOutputPortWidth(S, 0, ENCODED_LEN_' upper(mavlink_msg_name) ');']);
                 
             case 8
-                fprintf(fout,'\t%s\n',['encode_businfo_' mavlink_msg_name '(S, busInfo, 0);']);
+                fprintf(fout,'\t%s\n',['int_T *busInfo = (int_T *) malloc(2*NFIELDS_BUS_' upper(mavlink_msg_name) '*sizeof(int_T));']);
                 
             case 9
+                fprintf(fout,'\t%s\n',['encode_businfo_' mavlink_msg_name '(S, busInfo, 0);']);
+                
+            case 10
                 fprintf(fout,'\t%s\n',['encode_vector_' mavlink_msg_name '(uvec, busInfo, yvec, 0);']);    
         end
         
@@ -104,6 +123,9 @@ eval(['mex ' output_filename '.cpp']);
 
 movefile([output_filename '.*'],'sfunctions');
 disp('S-function source and compiled files are in the folder ''sfunctions''')
+
+% Add the sfunctions directory to path
+addpath(fullfile(pathname,'sfunctions'));
 
 disp('***')
 

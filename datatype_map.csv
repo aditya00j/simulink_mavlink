@@ -1,4 +1,4 @@
-px4,simulink
+mavlink,simulink
 uint8_t,uint8
 int8_t,int8
 uint16_t,uint16

@@ -1,6 +1,6 @@
 /*
 DO NOT EDIT.
-This file was automatically created by the Matlab function 'create_sfun_encode' on 04-Dec-2017 15:46:48
+This file was automatically created by the Matlab function 'create_sfun_encode' on 05-Dec-2017 13:24:41
 as part of Simulink MAVLink library.
 */
 #define S_FUNCTION_NAME  sfun_encode_msg_raw_imu

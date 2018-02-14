@@ -3,10 +3,19 @@ function create_sfun_decode(filenames, sys_id, comp_id)
 % messages from an incoming MAVLink stream
 %
 % Inputs:
-%   filenames: cell array of strings containing the MAVLink message header
-%              files for messages to be decoded
-%   sys_id: MAVLink SYSID to be used for Simulink (default 100)
-%   comp_id: MAVLink COMPID to be used for Simulink (default 200)
+%   filenames: strings containing the full path to the MAVLink messages
+%             header file names. These files must be created as a part of a
+%             single MAVLink dialect, and must reside in the directory 
+%             structure of the corresponding dialect. In other words, the
+%             directory containing this message file must also contain the
+%             "mavlink.h" file, and its parent directory must contain the
+%             other commond mavlink files such as "protocol.h".
+% 
+%             NOTE: To ensure compiler independence, provide the full paths
+%                   of the message files, and not relative paths.
+% 
+%   sys_id:   MAVLink SYSID to be used for Simulink (default 100)
+%   comp_id:  MAVLink COMPID to be used for Simulink (default 200)
 %
 % Output:
 %   This function creates the Simulink buses, the s-function header files,
@@ -15,12 +24,19 @@ function create_sfun_decode(filenames, sys_id, comp_id)
 %Part of the Simulink MAVLink package.
 %(c) Aditya Joshi, November 2017
 
+
+%% Parse inputs
+
 if ~iscell(filenames), filenames = {filenames}; end
 
 disp('*** Running create_sfun_decode:')
 
 if nargin < 2, sys_id = 100; end
 if nargin < 3, comp_id = 200; end
+
+pathname = fileparts(mfilename('fullpath'));
+sfun_include_dir = fullfile(pathname,'include');
+mavlink_dialect_dir = fileparts(filenames{1});
 
 
 %% Create message header files
@@ -31,12 +47,11 @@ for i = 1:length(filenames)
 end
 
 
-%% Create header file
+%% Create decode header file
 
 fprintf('Creating s-function header file... ')
 
-header_filename = 'include/sfun_decode_mavlink.h';
-
+header_filename = fullfile(sfun_include_dir,'sfun_decode_mavlink.h');
 fid = fopen(header_filename,'w');
 
 % Write header
@@ -47,9 +62,9 @@ fprintf(fid,'%s\n','as part of Simulink MAVLink library.');
 fprintf(fid,'%s\n','*/');
 fprintf(fid,'%s\n','');
 
-% Include message headers
+% Include sfun headers
 for i = 1:length(filenames)
-    fprintf(fid,'%s\n',['#include "include/sfun_mavlink_msg_' mavlink_msg_names{i} '.h"']);
+    fprintf(fid,'%s\n',['#include "' sfun_include_dir filesep 'sfun_mavlink_msg_' mavlink_msg_names{i} '.h"']);
 end
 
 % Define NFIELDS_OUTPUT_BUS
@@ -143,10 +158,14 @@ while ~contains(lin,'<END>')
                 fprintf(fout,'%s\n',['#define COMP_ID ' num2str(comp_id)]);
                 
             case 3
+                % include mavlink common header
+                fprintf(fout,'%s\n',['#include "' mavlink_dialect_dir filesep 'mavlink.h"']);
+                
+            case 4
                 % include header file
                 fprintf(fout,'%s\n',['#include "' header_filename '"']);
                 
-            case 4
+            case 5
                 % configure output ports
                 fprintf(fout,'\t%s\n',['if (!ssSetNumOutputPorts(S, ' num2str(i) ')) return;']);
                 fprintf(fout,'%s\n','');
@@ -184,7 +203,7 @@ while ~contains(lin,'<END>')
                     fprintf(fout,'\t%s\n',['ssSetOutputPortBusMode(S, ' num2str(i-1) ', SL_BUS_MODE);']);
                 end
                 
-            case 5
+            case 6
                 % encode_businfo for each message
                 for i = 1:length(filenames)
                     fprintf(fout,'\t%s\n',['encode_businfo_' mavlink_msg_names{i} '(S, busInfo, OFFSET_' upper(mavlink_msg_names{i}) ');']);
@@ -214,5 +233,8 @@ eval(['mex ' output_filename '.cpp']);
 
 movefile([output_filename '.*'],'sfunctions');
 disp('S-function source and compiled files are in the folder ''sfunctions''')
+
+% Add the sfunctions directory to path
+addpath(fullfile(pathname,'sfunctions'));
 
 disp('***')

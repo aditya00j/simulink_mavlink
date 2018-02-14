@@ -1,19 +1,32 @@
 function mavlink_msg_name = create_sfun_header(filename)
-% CREATE_SFUN_HEADER: Create the message header files for s-functions in Simulink MAVLink
+% CREATE_SFUN_HEADER: Create the message header files to be included in the
+%                     s-functions used in the Simulink MAVLink library
+% 
+% NOTE: This function is called by other functions create_sfun_encode and
+%       create_sfun_decode, so the user would typically not have to
+%       directly use this function.
 %
 % Inputs:
-%   mavlink_msg_name: string containing the name of the mavlink message. In the
-%                     standard naming convention, everythin after the "mavlink_msg_"
-%                     in the name of the mavlink header file is considered the
-%                     message name. e.g. if the header file is "mavlink_msg_altitude",
-%                     the message name is "altitude".
-%   simulink_bus: the Simulink bus object corresponding to this message. This bus
-%                     is created by the function "create_bus_from_mavlink_header"
+%   filename: string containing the full path to the MAVLink message
+%             header file name. This file must be created as a part of a
+%             MAVLink dialect, and must reside in the directory structure
+%             of the corresponding dialect. In other words, the directory
+%             containing this message file must also contain the
+%             "mavlink.h" file, and its parent directory must contain the
+%             other commond mavlink files such as "protocol.h".
+%             NOTE: To ensure compiler independence, provide the full path
+%                   of the message file, and not relative path.
 %
-% Output: the function creates the .h header file in the "include" directory.
+% Output: The function creates the .h header file in the "include"
+%         directory of the Simulink MAVLink library.
 %
 %Part of the Simulink MAVLink package.
 %(c) Aditya Joshi, October 2017
+
+
+%% Parse inputs
+
+pathname = fileparts(mfilename('fullpath'));
 
 
 %% Create and save bus
@@ -29,12 +42,15 @@ busfilename = ['buses/bus_' simulink_bus_name '.mat'];
 save(busfilename,simulink_bus_name);
 disp(['Bus is saved in ' busfilename]);
 
+% Add the buses directory to path
+addpath(fullfile(pathname,'buses'));
+
 
 %% Prepare header file
 
 fprintf('Creating the s-function header file... ');
 mavlink_msg_name = erase(simulink_bus_name,{'mavlink_','_t'});
-fileName = ['include/sfun_mavlink_msg_' mavlink_msg_name '.h'];
+fileName = fullfile(pathname,'include',['sfun_mavlink_msg_' mavlink_msg_name '.h']);
 fid = fopen(fileName,'w');
 
 
@@ -47,10 +63,9 @@ fprintf(fid,'%s\n','as part of Simulink MAVLink library.');
 fprintf(fid,'%s\n','*/');
 
 % Use full path in the #include statements
-pathname = fileparts(mfilename('fullpath'));
-sep = filesep;
 fprintf(fid,'%s\n','');
-fprintf(fid,'%s\n',['#include "' pathname sep 'include' sep 'mavlink' sep 'v1.0' sep 'common' sep 'mavlink_msg_' mavlink_msg_name '.h"']);
+fprintf(fid,'%s\n',['#include "' filename '"']);
+fprintf(fid,'%s\n','');
 fprintf(fid,'%s\n',['#define BUS_NAME_' upper(mavlink_msg_name) ' "' simulink_bus_name '"']);
 fprintf(fid,'%s\n',['#define NFIELDS_BUS_' upper(mavlink_msg_name) ' ' num2str(length(simulink_bus.Elements))]);
 fprintf(fid,'%s\n',['#define ENCODED_LEN_' upper(mavlink_msg_name) ' (MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_' upper(mavlink_msg_name) '_LEN)']);
