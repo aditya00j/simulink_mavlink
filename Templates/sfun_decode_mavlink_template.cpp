@@ -42,9 +42,10 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortDirectFeedThrough(S, 0, 1);
     ssSetInputPortRequiredContiguous(S, 0, 1);
     ssSetInputPortDataType(S, 0, SS_UINT8);
-    ssSetInputPortVectorDimension(S, 0, MAVLINK_MAX_PACKET_LEN);
+    
+<EDIT><5> // Configure input port length
 
-<EDIT><5> // Configure output ports
+<EDIT><6> // Configure output ports
 
     ssSetNumSampleTimes(S, 1);
 
@@ -87,7 +88,7 @@ static void mdlStart(SimStruct *S)
       return;
     }
 
-<EDIT><6> // encode_businfo for each message
+<EDIT><7> // encode_businfo for each message
 
     ssSetUserData(S, busInfo);
 } /* end mdlStart */
@@ -104,6 +105,13 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
     int_T len_uvec = ssGetInputPortWidth(S, 0);
     const uint8_T* uvec = (uint8_T*) ssGetInputPortSignal(S, 0);
+    
+    // Set the read status to zero
+    int_T len_ystatus = ssGetOutputPortWidth(S, 0);
+    real_T  *ystatus = ssGetOutputPortRealSignal(S, 0);
+    for (int yidx = 0; yidx < len_ystatus; yidx++) {
+        ystatus[yidx] = 0;
+    }
 
     mavlink_message_t msg;
     mavlink_status_t status;

@@ -1,8 +1,8 @@
 # Simulink-MAVLink
 **MAVLink communication support for Simulink**
 
-![Encode Image](https://raw.githubusercontent.com/aditya00j/simulink_mavlink/master/images/example_encode.PNG)
-![Decode Image](https://raw.githubusercontent.com/aditya00j/simulink_mavlink/master/images/example_decode.PNG)
+![Encode Image](Images/example_encode.PNG)
+![Decode Image](Images/example_decode.PNG)
 ___
 
 ## What is Simulink-MAVLink?
@@ -20,26 +20,22 @@ This library was built and tested on Matlab R2017a.
 
 ## Getting Started
 
-### Create Message Busses and S-Functions
+### Step 1: Create Message Busses and S-Functions
  
 1. Use the script `setup.m` to choose which MAVLink messages need to be encoded/decoded for your application.
 2. Running the script will create the message busses, write the header and source files for the message encoder and decoder functions, and finally compile the s-functions using the `mex` command. Assuming all the options are specified correctly and the mex compilation is working, the compiled S-functions are created in the `Generated` folder.
 
-For each message to be encoded, a separate S-function is created, that accepts the message bus as input, and creates a uint8 array of length `MAVLINK_MAX_PACKET_LEN` (= 280 for MAVLink v2.0). On the other hand, for decoding the received MAVLink data, there is only a single S-function, which accepts a uint8 array of length `MAVLINK_MAX_PACKET_LEN`, and decodess it into individual message busses.
+For each message to be encoded, a separate S-function is created, that accepts the message bus as input, and creates a uint8 array of length `MAVLINK_MAX_PACKET_LEN` (= 280 for MAVLink v2.0).
+
+On the other hand, for decoding the received MAVLink data, there is only a single S-function, which accepts a uint8 array of length `NMAX * MAVLINK_MAX_PACKET_LEN`, where `NMAX` is a user-specified maximum number of messages to be decoded in one iteration. This can be determined from the amount of buffer used in the receiving channel. The decoder S-function has `n+1` output ports, where `n` is the number of messages selected for decoding. The first output is a vector of length `n`, which indicates a 1/0 received status for each message received. If a message is received and decoded successfully in a given iteration, the status for that message is set to 1, otherwise 0. The output ports 2 onwards are the message busses, into which the decoded data is unpacked.
 
 
-### Use S-Functions in Simulink to Test Local Encoding/Decoding
+### Step 2: Use S-Functions in Simulink to Test Local Encoding/Decoding
 
-To verify that the encoding/decoding works correctly, open the Simulink model `Examples\test_attitude.slx`. This model simply packs arbitrary data into the Attitude message bus. Run the model and verify that the data in busses `sent_bus` and `recd_bus` matches.
+To verify that the encoding/decoding works correctly, open the Simulink model `Examples\test_messages_local.slx`. This model packs the messages 'ping' and 'param_set' into a single uint8 stream using their encoder functions, and then decodes this stream using the decoder function. Note the following points while running the model:
 
-Note the following points while running the model:
-
-* All the message busses (`mavlink_attitude_t` in this case) must be loaded into the base workspace before running the model.
+* All the message busses must be loaded into the base workspace before running the model.
 * The signal on the input port of an encoder S-function must be a non-virtual bus, and all the individual signal types for the bus input must be set correctly.
-
-### Use S-Functions in Simulink to Exchange MAVLink Data on TCP
-
-The Simulink model `Examples\test_attitude_tcp.slx` shows how the bit streams can be sent/received over TCP to communicate with PX4 Autopilot. Example of sending and receiving data over TCP/IP in Simulink is explained [here](https://www.mathworks.com/help/instrument/send-and-receive-data-over-a-tcpip-network.html). Once you've started an echo server on port 4560 in Matlab, you can run the Simulink model and verify that the data in busses `msg_sent` and `msg_recd` matches.
 
 
 ## General Principles

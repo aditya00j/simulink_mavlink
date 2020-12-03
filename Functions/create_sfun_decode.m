@@ -1,10 +1,13 @@
-function create_sfun_decode(filenames, sys_id, comp_id)
+function create_sfun_decode(filenames, nmax, sys_id, comp_id)
 % CREATE_SFUN_DECODE: Create and compile the S-function to decode MAVLink
 % messages from an incoming MAVLink stream
 %
 % Inputs:
 %   filenames: cell array of strings containing the MAVLink message header
-%              files for messages to be decoded
+%              files for messages to be decoded.
+%   nmax: maximum number of messages received in one iteration. This can be
+%         determined from the buffer size of the receiving channel.
+%         (default 1)
 %   sys_id: MAVLink SYSID to be used for Simulink (default 100)
 %   comp_id: MAVLink COMPID to be used for Simulink (default 200)
 %
@@ -20,8 +23,9 @@ if ~iscell(filenames), filenames = {filenames}; end
 disp('--')
 disp('Creating decoder s-function:')
 
-if nargin < 2, sys_id = 100; end
-if nargin < 3, comp_id = 200; end
+if nargin < 2, nmax = 1; end
+if nargin < 3, sys_id = 100; end
+if nargin < 4, comp_id = 200; end
 
 
 %% Create message header files
@@ -86,14 +90,19 @@ fprintf(fid,'%s\n','static inline void decode_mavlink_msg (SimStruct *S, const m
 fprintf(fid,'%s\n','{');
 fprintf(fid,'\t%s\n','int_T *busInfo = (int_T *) ssGetUserData(S);');
 fprintf(fid,'%s\n','');
+fprintf(fid,'\t%s\n','real_T  *ystatus = ssGetOutputPortRealSignal(S, 0);');
+fprintf(fid,'%s\n','');
+
+
 for i = 1:length(filenames)
-    fprintf(fid,'\t%s\n',['char* yvec' num2str(i-1) ' = (char *) ssGetOutputPortRealSignal(S, ' num2str(i-1) ');']);
+    fprintf(fid,'\t%s\n',['char* yvec' num2str(i) ' = (char *) ssGetOutputPortRealSignal(S, ' num2str(i) ');']);
 end
 fprintf(fid,'\t%s\n','switch (msg->msgid) {');
 for i = 1:length(filenames)
     fprintf(fid,'%s\n','');
     fprintf(fid,'\t\t%s\n',['case MAVLINK_MSG_ID_' upper(mavlink_msg_names{i}) ':']);
-    fprintf(fid,'\t\t\t%s\n',['decode_msg_' mavlink_msg_names{i} '(msg, busInfo, yvec' num2str(i-1) ', OFFSET_' upper(mavlink_msg_names{i}) ');']); 
+    fprintf(fid,'\t\t\t%s\n',['ystatus[' num2str(i-1) '] = 1;']);
+    fprintf(fid,'\t\t\t%s\n',['decode_msg_' mavlink_msg_names{i} '(msg, busInfo, yvec' num2str(i) ', OFFSET_' upper(mavlink_msg_names{i}) ');']); 
     fprintf(fid,'\t\t\t%s\n','break;');
 end
 fprintf(fid,'\t%s\n','}');
@@ -153,17 +162,23 @@ while ~contains(lin,'<END>')
                 fprintf(fout,'%s\n', '#include "sfun_decode_mavlink.h"');
                 
             case 5
+                % configure input port length
+                fprintf(fout,'%s\n', ['ssSetInputPortVectorDimension(S, 0, ' num2str(nmax) '*MAVLINK_MAX_PACKET_LEN);']);
+                
+            case 6
                 % configure output ports
-                fprintf(fout,'\t%s\n',['if (!ssSetNumOutputPorts(S, ' num2str(i) ')) return;']);
+                fprintf(fout,'\t%s\n',['if (!ssSetNumOutputPorts(S, ' num2str(i+1) ')) return;']);
+                fprintf(fout,'%s\n','');
+                fprintf(fout,'\t%s\n',['ssSetOutputPortWidth(S, 0, ' num2str(i) ');']);
                 fprintf(fout,'%s\n','');
                 fprintf(fout,'\t%s\n','#if defined(MATLAB_MEX_FILE)');
                 fprintf(fout,'\t%s\n','if (ssGetSimMode(S) != SS_SIMMODE_SIZES_CALL_ONLY)');
                 fprintf(fout,'\t%s\n','{');
                 for i = 1:length(filenames)
-                    fprintf(fout,'\t\t%s\n',['DTypeId dataTypeIdReg' num2str(i-1) ';']);
-                    fprintf(fout,'\t\t%s\n',['ssRegisterTypeFromNamedObject(S, BUS_NAME_' upper(mavlink_msg_names{i}) ', &dataTypeIdReg' num2str(i-1) ');']);
-                    fprintf(fout,'\t\t%s\n',['if (dataTypeIdReg' num2str(i-1) ' == INVALID_DTYPE_ID) return;']);
-                    fprintf(fout,'\t\t%s\n',['ssSetOutputPortDataType(S, ' num2str(i-1) ', dataTypeIdReg' num2str(i-1) ');']);
+                    fprintf(fout,'\t\t%s\n',['DTypeId dataTypeIdReg' num2str(i) ';']);
+                    fprintf(fout,'\t\t%s\n',['ssRegisterTypeFromNamedObject(S, BUS_NAME_' upper(mavlink_msg_names{i}) ', &dataTypeIdReg' num2str(i) ');']);
+                    fprintf(fout,'\t\t%s\n',['if (dataTypeIdReg' num2str(i) ' == INVALID_DTYPE_ID) return;']);
+                    fprintf(fout,'\t\t%s\n',['ssSetOutputPortDataType(S, ' num2str(i) ', dataTypeIdReg' num2str(i) ');']);
                     fprintf(fout,'%s\n','');
                 end
                 fprintf(fout,'\t%s\n','}');
@@ -172,25 +187,25 @@ while ~contains(lin,'<END>')
                 
                 fprintf(fout,'%s\n','');
                 for i = 1:length(filenames)
-                    fprintf(fout,'\t%s\n',['ssSetBusOutputObjectName(S, ' num2str(i-1) ', (void *) BUS_NAME_' upper(mavlink_msg_names{i}) ');']);
+                    fprintf(fout,'\t%s\n',['ssSetBusOutputObjectName(S, ' num2str(i) ', (void *) BUS_NAME_' upper(mavlink_msg_names{i}) ');']);
                 end
                                 
                 fprintf(fout,'%s\n','');
                 for i = 1:length(filenames)
-                    fprintf(fout,'\t%s\n',['ssSetOutputPortWidth(S, ' num2str(i-1) ', 1);']);
+                    fprintf(fout,'\t%s\n',['ssSetOutputPortWidth(S, ' num2str(i) ', 1);']);
                 end
                                 
                 fprintf(fout,'%s\n','');
                 for i = 1:length(filenames)
-                    fprintf(fout,'\t%s\n',['ssSetBusOutputAsStruct(S, ' num2str(i-1) ', 1);']);
+                    fprintf(fout,'\t%s\n',['ssSetBusOutputAsStruct(S, ' num2str(i) ', 1);']);
                 end
                                 
                 fprintf(fout,'%s\n','');
                 for i = 1:length(filenames)
-                    fprintf(fout,'\t%s\n',['ssSetOutputPortBusMode(S, ' num2str(i-1) ', SL_BUS_MODE);']);
+                    fprintf(fout,'\t%s\n',['ssSetOutputPortBusMode(S, ' num2str(i) ', SL_BUS_MODE);']);
                 end
                 
-            case 6
+            case 7
                 % encode_businfo for each message
                 for i = 1:length(filenames)
                     fprintf(fout,'\t%s\n',['encode_businfo_' mavlink_msg_names{i} '(S, busInfo, OFFSET_' upper(mavlink_msg_names{i}) ');']);
