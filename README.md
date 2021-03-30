@@ -1,8 +1,8 @@
 # Simulink-MAVLink
 **MAVLink communication support for Simulink**
 
-![Encode Image](Images/example_encode.PNG)
-![Decode Image](Images/example_decode.PNG)
+![Encode Image](Images/example_encode.png)
+![Decode Image](Images/example_decode.png)
 ___
 
 ## What is Simulink-MAVLink?
