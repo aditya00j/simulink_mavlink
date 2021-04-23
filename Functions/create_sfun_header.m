@@ -31,7 +31,11 @@ disp(['done, bus is saved in ' busfilename]);
 %% Prepare header file
 
 fprintf('Writing the message s-function header file... ');
-mavlink_msg_name = erase(simulink_bus_name,{'mavlink_','_t'});
+
+%--------------------Bug Fix for header files with '_t' in their names ----------------------
+mavlink_msg_name = erase(strcat(simulink_bus_name,'Identifier'),{'mavlink_','_tIdentifier'});
+%--------------------------------------------------------------------------------------------
+
 fileName = ['Generated/sfun_mavlink_msg_' mavlink_msg_name '.h'];
 fid = fopen(fileName,'w');
 

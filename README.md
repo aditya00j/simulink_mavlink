@@ -14,7 +14,7 @@ ___
  * Simulink also has a way of representing structured numerical data - Simulink Bus.
  * Therefore, this small and light-weight Simulink-MAVLink library was built to provide Simulink S-functions utilizing the MAVLink library, which facilitate two-way data conversion: Simulink Bus to uint8, and uint8 to Simulink Bus.
 
-This library was built and tested on Matlab R2017a.
+****This library will work on Matlab R2016b and beyond****.
 
 [MAVLink]: https://github.com/mavlink/mavlink
 
